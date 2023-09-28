@@ -1,7 +1,7 @@
 #print("Hello Client World!")
 
-
 from socket import *
+import sys  #needed to access the command-line arguments 
 
 serverName = "localhost"            # server name
 serverPort = 12000                  # socket server port number
