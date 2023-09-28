@@ -4,7 +4,9 @@ from socket import *
 import sys  #needed to access the command-line arguments
 
 sockBuffer = 1024                   # socket buffer size
-serverAddressPort = ""
+global serverAddressPort
+global clientSocket
+global UDPClientSocket
 
 msgCLOSE = "close"
 msgOPEN = "open"
@@ -17,14 +19,14 @@ msgPUT = "put"
 def main():
     len_args = len(sys.argv)  # get number of arguments
     if (len_args != 3):
-        print(
-            "Wrong number of arguments please put only the server name and the UDP Port so the server can receive commands")
+        print("Wrong number of arguments please put only the server name and the UDP Port so the server can receive commands")
+        sys.exit(6969)
     else:
         serverName = sys.argv[1]
         serverPort = sys.argv[2]
         serverAddressPort = (serverName, int(serverPort))
-        print("server port: ", serverPort)  # after that check if the port is valid, TODO comment this, debug info
-    print("Hello Client World!")
+        #print("server port: ", serverPort)  # after that check if the port is valid
+    #print("Hello Client World!")
 
     # create UDP socket
     UDPClientSocket = socket(AF_INET, SOCK_DGRAM)
@@ -47,7 +49,7 @@ def main():
                 if numPort < 1024 or numPort > 65535:
                     print("Invalid Port Number.")
                 else:
-                    openConnection(UDPClientSocket, arrLine[1])
+                    openConnection(arrLine[1])
 
         elif cmd == msgGET:
             if numArg != 2:
@@ -55,7 +57,7 @@ def main():
             else:
                 serverFile = arrLine[1]
                 clientFile = arrLine[2]
-                getFileFromServer(clientSocket, UDPClientSocket, serverFile, clientFile)
+                getFileFromServer(serverFile, clientFile)
 
         elif cmd == msgPUT:
             if numArg != 2:
@@ -63,28 +65,28 @@ def main():
             else:
                 clientFile = arrLine[1]
                 serverFile = arrLine[2]
-                putFileInServer(clientSocket, UDPClientSocket, serverFile, clientFile)
+                putFileInServer(serverFile, clientFile)
 
         elif cmd == msgCLOSE:
-            closeConnection(clientSocket)
+            closeConnection()
             break #To stop the loop
 
         else:
             print("No Command: " + cmd)
 
 #Tell Server to open TCP Connection
-def openConnection(UDPClientSocket, port):
+def openConnection(port):
     UDPClientSocket.sendto(port.encode(), serverAddressPort)
 
 #Close the TCP Connection and tell server to do the same
-def closeConnection(clientSocket):
+def closeConnection():
     clientSocket.send(msgCLOSE.encode())
     clientSocket.close()
 
-def getFileFromServer(clientSocket, UDPClientSocket, serverFile, clientFile):
+def getFileFromServer(serverFile, clientFile):
     print("hello") #TODO
 
-def putFileInServer(clientSocket, UDPClientSocket, serverFile, clientFile):
+def putFileInServer(serverFile, clientFile):
     print("hello") # TODO
 
 #Check if the module is being run as the main program
