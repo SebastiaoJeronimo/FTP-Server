@@ -37,21 +37,19 @@ def main():
             if numArg != 2:
                 #print("Invalid arguments")
             else:
-                get_command(clientSocket, socketUDP, serverName, filename)
+                #get_command(clientSocket, socketUDP, serverName, filename)
         # ...
 
         elif cmd == msgPUT:
             if numArg != 2:
                 #print("Invalid arguments")
             else:
-                filename = cmdLine[1]
-                put_command(clientSocket, socketUDP, serverName, filename)
+                filename = arrLine[1]
+                #put_command(clientSocket, socketUDP, serverName, filename)
         # ...
 
         elif cmd == msgCLOSE:
-            if numArg != 1:
-                #print error
-            clientSocket.send(msgQUIT.encode())
+            clientSocket.send(msgCLOSE.encode())
             clientSocket.close()
             break
 
