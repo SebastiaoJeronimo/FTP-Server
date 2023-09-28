@@ -11,7 +11,7 @@ msgCLOSE = "close"
 msgOPEN = "open"
 msgGET = "get"
 msgPUT = "put"
-#msgACK = "ACK"
+#msgACK = "ACK" #ask professor if we can use the char ACK
 #msgOK = "OK"
 #msgSTART = "START"
 
@@ -23,7 +23,7 @@ def main():
     if (len_args != 3):
         print ("wrong number of arguments please put only the server name and the UDP Port so the server can recieve commands")
     else:
-        print("server port" , sys.argv[1]) #after that check if the port is valid
+        print("server port" , sys.argv[2]) #after that check if the port is valid
 
     print("Hello Client World!")
 
