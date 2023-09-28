@@ -22,6 +22,7 @@ def main():
     else:
         serverName = sys.argv[1]
         serverPort = sys.argv[2]
+        serverAddressPort = (serverName, int(serverPort))
         print("server port: ", serverPort)  # after that check if the port is valid, TODO comment this, debug info
     print("Hello Client World!")
 
@@ -30,7 +31,7 @@ def main():
     # create TCP socket
     clientSocket = socket(AF_INET, SOCK_STREAM)
     # open TCP connection
-    clientSocket.connect((serverName, serverPort))
+    clientSocket.connect(serverAddressPort)
 
     while True:
         line = input("-> ")
@@ -69,7 +70,7 @@ def main():
             break #To stop the loop
 
         else:
-            print("Command not found")
+            print("No Command: " + cmd)
 
 #Tell Server to open TCP Connection
 def openConnection(UDPClientSocket, port):
