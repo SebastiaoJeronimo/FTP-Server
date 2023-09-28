@@ -1,9 +1,9 @@
-#print("Hello Client World!")
+# print("Hello Client World!")
 
 from socket import *
-import sys  #needed to access the command-line arguments
+import sys  # needed to access the command-line arguments
 
-sockBuffer = 1024                   # socket buffer size
+sockBuffer = 1024  # socket buffer size
 global serverAddressPort
 global clientSocket
 global UDPClientSocket
@@ -12,21 +12,25 @@ msgCLOSE = "close"
 msgOPEN = "open"
 msgGET = "get"
 msgPUT = "put"
-#msgACK = "ACK"
-#msgOK = "OK"
-#msgSTART = "START"
+
+
+# msgACK = "ACK"
+# msgOK = "OK"
+# msgSTART = "START"
+
 
 def main():
     len_args = len(sys.argv)  # get number of arguments
-    if (len_args != 3):
-        print("Wrong number of arguments please put only the server name and the UDP Port so the server can receive commands")
+    if len_args != 3:
+        (print("Wrong number of arguments please put only the server " +
+               "name and the UDP Port so the server can receive commands"))
         sys.exit(6969)
     else:
         serverName = sys.argv[1]
         serverPort = sys.argv[2]
         serverAddressPort = (serverName, int(serverPort))
-        #print("server port: ", serverPort)  # after that check if the port is valid
-    #print("Hello Client World!")
+        # print("server port: ", serverPort)  # after that check if the port is valid
+    # print("Hello Client World!")
 
     # create UDP socket
     UDPClientSocket = socket(AF_INET, SOCK_DGRAM)
@@ -39,7 +43,7 @@ def main():
         line = input("-> ")
         arrLine = line.split(" ")
         cmd = arrLine[0]
-        numArg = len(arrLine) - 1 #Don't count the name of the file that has the code to run
+        numArg = len(arrLine) - 1  # Don't count the name of the file that has the code to run
 
         if cmd == msgOPEN:
             if numArg != 1:
@@ -69,27 +73,32 @@ def main():
 
         elif cmd == msgCLOSE:
             closeConnection()
-            break #To stop the loop
+            break  # To stop the loop
 
         else:
             print("No Command: " + cmd)
 
-#Tell Server to open TCP Connection
+
+# Tell Server to open TCP Connection
 def openConnection(port):
     UDPClientSocket.sendto(port.encode(), serverAddressPort)
 
-#Close the TCP Connection and tell server to do the same
+
+# Close the TCP Connection and tell server to do the same
 def closeConnection():
     clientSocket.send(msgCLOSE.encode())
     clientSocket.close()
 
+
 def getFileFromServer(serverFile, clientFile):
-    print("hello") #TODO
+    print("hello")  # TODO
+
 
 def putFileInServer(serverFile, clientFile):
-    print("hello") # TODO
+    print("hello")  # TODO
 
-#Check if the module is being run as the main program
-#if it is then the program starts here
+
+# Check if the module is being run as the main program
+# if it is then the program starts here
 if __name__ == "__main__":
     main()
