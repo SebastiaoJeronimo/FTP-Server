@@ -3,10 +3,8 @@
 from socket import *
 import sys  #needed to access the command-line arguments
 
-serverName = "localhost"            # server name
-serverPort = 12000                  # socket server port number
 sockBuffer = 1024                   # socket buffer size
-serverAddressPort   = ("127.0.0.1", 20001) #for UDP
+serverAddressPort = ""
 
 msgCLOSE = "close"
 msgOPEN = "open"
@@ -17,21 +15,24 @@ msgPUT = "put"
 #msgSTART = "START"
 
 def main():
-    UDPClientSocket = socket(AF_INET, SOCK_DGRAM)
-
-    #parte do sebas
-
-    #clientSocket = socket(AF_INET,SOCK_STREAM)       # create TCP socket
-    #clientSocket.connect((serverName, serverPort))   # open TCP connection
-    len_args = len(sys.argv)       #get number of arguments
+    len_args = len(sys.argv)  # get number of arguments
     if (len_args != 3):
-        print ("wrong number of arguments please put only the server name and the UDP Port so the server can recieve commands")
+        print(
+            "Wrong number of arguments please put only the server name and the UDP Port so the server can receive commands")
     else:
-        print("server port" , sys.argv[1]) #after that check if the port is valid
-
+        serverName = sys.argv[1]
+        serverPort = sys.argv[2]
+        serverAddressPort = (serverName, serverPort)
+        print("server port: ", serverPort)  # after that check if the port is valid, TODO comment this, debug info
     print("Hello Client World!")
 
-    #parte do goncalo
+    # create UDP socket
+    UDPClientSocket = socket(AF_INET, SOCK_DGRAM)
+    # create TCP socket
+    clientSocket = socket(AF_INET, SOCK_STREAM)
+    # open TCP connection
+    clientSocket.connect((serverName, serverPort))
+
     while True:
         line = input("-> ")
         arrLine = line.split(" ")
@@ -74,5 +75,7 @@ def main():
 def openConection(UDPClientSocket, port):
     UDPClientSocket.sendto(port.encode(), serverAddressPort)
 
-if __name__ == "__main__":  #check if the module is being run as the main program
+#Check if the module is being run as the main program
+#if it is then the program starts here
+if __name__ == "__main__":
     main()
