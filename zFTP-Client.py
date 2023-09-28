@@ -1,58 +1,64 @@
 #print("Hello Client World!")
 
 from socket import *
-import sys  #needed to access the command-line arguments 
+import sys  #needed to access the command-line arguments
 
-serverName = "localhost"            # server name
-serverPort = 12000                  # socket server port number
-sockBuffer = 2048                   # socket buffer size
+sockBuffer = 1024                   # socket buffer size
+serverAddressPort = ""
 
 msgCLOSE = "close"
 msgOPEN = "open"
 msgGET = "get"
 msgPUT = "put"
-#msgACK = "ACK" #ask professor if we can use the char ACK
+#msgACK = "ACK"
 #msgOK = "OK"
 #msgSTART = "START"
 
 def main():
-    #parte do sebas
-    #clientSocket = socket(AF_INET,SOCK_STREAM)       # create TCP socket
-    #clientSocket.connect((serverName, serverPort))   # open TCP connection
-    len_args = len(sys.argv)       #get number of arguments
+    len_args = len(sys.argv)  # get number of arguments
     if (len_args != 3):
-        print ("wrong number of arguments please put only the server name and the UDP Port so the server can recieve commands")
+        print(
+            "Wrong number of arguments please put only the server name and the UDP Port so the server can receive commands")
     else:
-        print("server port" , sys.argv[2]) #after that check if the port is valid
-
+        serverName = sys.argv[1]
+        serverPort = sys.argv[2]
+        serverAddressPort = (serverName, serverPort)
+        print("server port: ", serverPort)  # after that check if the port is valid, TODO comment this, debug info
     print("Hello Client World!")
 
+    # create UDP socket
+    UDPClientSocket = socket(AF_INET, SOCK_DGRAM)
+    # create TCP socket
+    clientSocket = socket(AF_INET, SOCK_STREAM)
+    # open TCP connection
+    clientSocket.connect((serverName, serverPort))
 
-    #parte do goncalo
     while True:
         line = input("-> ")
         arrLine = line.split(" ")
         cmd = arrLine[0]
-        numArg = len(arrLine)
-
-        cmd = 'change me'#TODO change
+        numArg = len(arrLine) - 1
 
         if cmd == msgOPEN:
             if numArg != 1:
                 print("Invalid number of arguments.")
             else:
-                #open
+                numPort = int(arrLine[1])
+                if numPort < 1024 or numPort > 65535:
+                    print("Invalid Port Number.")
+                else:
+                    openConection(UDPClientSocket, arrLine[1])
             # ...
         elif cmd == msgGET:
             if numArg != 2:
-                #print("Invalid arguments")
+                print("Invalid number of arguments.")
             else:
                 #get_command(clientSocket, socketUDP, serverName, filename)
         # ...
 
         elif cmd == msgPUT:
             if numArg != 2:
-                #print("Invalid arguments")
+                print("Invalid number of arguments.")
             else:
                 filename = arrLine[1]
                 #put_command(clientSocket, socketUDP, serverName, filename)
@@ -66,6 +72,10 @@ def main():
         else:
             print("Command not found")
 
+def openConection(UDPClientSocket, port):
+    UDPClientSocket.sendto(port.encode(), serverAddressPort)
 
-if __name__ == "__main__":  #check if the module is being run as the main program
+#Check if the module is being run as the main program
+#if it is then the program starts here
+if __name__ == "__main__":
     main()

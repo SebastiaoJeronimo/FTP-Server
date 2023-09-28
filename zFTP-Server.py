@@ -1,5 +1,7 @@
 import sys  #needed to access the command-line arguments
 
+bufferSize   = 1024
+
 def main():
 
     print("Hello Server World!")
