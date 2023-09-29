@@ -96,6 +96,7 @@ def closeConnection():
     if msgFromServer != msgACK:
         print("ERROR: Server didn't acknowledge request, please try again later.")
     else:
+
         clientSocket.close()
 
 
