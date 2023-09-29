@@ -4,6 +4,8 @@ from socket import *
 import sys  # needed to access the command-line arguments
 
 sockBuffer = 1024  # socket buffer size
+bufferSize = 1024
+
 global serverAddressPort
 global clientSocket
 global UDPClientSocket
@@ -13,8 +15,8 @@ msgOPEN = "open"
 msgGET = "get"
 msgPUT = "put"
 
-
-# msgACK = "ACK"
+msgACK = "ACK"
+msgNACK = "NACK"
 # msgOK = "OK"
 # msgSTART = "START"
 
@@ -82,6 +84,9 @@ def main():
 # Tell Server to open TCP Connection
 def openConnection(port):
     UDPClientSocket.sendto(port.encode(), serverAddressPort)
+    msgFromServer = (UDPClientSocket.recvfrom(bufferSize)).decode()
+    if msgFromServer != msgACK:
+        print("Unknown error, please try again.")
 
 
 # Close the TCP Connection and tell server to do the same
