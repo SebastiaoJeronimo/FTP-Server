@@ -83,16 +83,20 @@ def main():
 
 # Tell Server to open TCP Connection
 def openConnection(port):
-    UDPClientSocket.sendto(port.encode(), serverAddressPort)
+    UDPClientSocket.sendto((msgOPEN + "" + port).encode(), serverAddressPort)
     msgFromServer = (UDPClientSocket.recvfrom(bufferSize)).decode()
     if msgFromServer != msgACK:
-        print("Unknown error, please try again.")
+        print("ERROR: Server didn't acknowledge request, please try again later.")
 
 
 # Close the TCP Connection and tell server to do the same
 def closeConnection():
-    clientSocket.send(msgCLOSE.encode())
-    clientSocket.close()
+    UDPClientSocket.sendto(msgCLOSE.encode(), serverAddressPort)
+    msgFromServer = (UDPClientSocket.recvfrom(bufferSize)).decode()
+    if msgFromServer != msgACK:
+        print("ERROR: Server didn't acknowledge request, please try again later.")
+    else:
+        clientSocket.close()
 
 
 def getFileFromServer(serverFile, clientFile):
