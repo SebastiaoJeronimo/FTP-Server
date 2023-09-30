@@ -14,10 +14,10 @@ msgCLOSE = "close"
 msgOPEN = "open"
 msgGET = "get"
 msgPUT = "put"
-msgACK = "ACK"
-msgNACK = "NACK"
-PUT_ERROR_FILE_CLIENT = "2"
-GET_ERROR_FILE_SERVER = "3"
+msgACK = "ack"
+msgNACK = "nack"
+PUT_SERVER_ERROR_FILE = "3"
+GET_SERVER_ERROR_FILE = "3"
 MIN_PORT_NUMBER = 1024
 MAX_PORT_NUMBER = 65535
 
@@ -97,6 +97,7 @@ def openConnection(port):
     elif msgFromServer != msgACK:  # Unknown answer from the server handling
         print("ERROR: Unknown answer from server.")
 
+
 # Close the TCP Connection and tell server to do the same
 def closeConnection():
     #Sends the request to the server
@@ -110,6 +111,7 @@ def closeConnection():
         print("ERROR: Unknown answer from server.")
     else:
         clientSocket.close()
+
 
 def getFileFromServer(serverFileName, clientFileName):
 
@@ -125,12 +127,14 @@ def getFileFromServer(serverFileName, clientFileName):
     msgFromServer = ((UDPClientSocket.recvfrom(bufferSize)).decode()).split(" ")
 
     # Denial handling
-    if msgFromServer[1] == msgNACK:
-        if msgFromServer[2] == GET_ERROR_FILE_SERVER:
-            print("The requested file does not exist on server")
+    if msgFromServer[1] != msgACK:
+        if msgFromServer[1] == msgNACK:
+            if msgFromServer[2] == GET_SERVER_ERROR_FILE:
+                print("The requested file does not exist on server")
+            else:
+                print("ERROR: Server didn't acknowledge request for an unknown reason.")
         else:
-            print("ERROR: Server didn't acknowledge request for an unknown reason.")
-
+            print("ERROR: Unknown answer from the server.")
         return
 
     # Receiving from the server and writing to the clientFile
@@ -150,8 +154,48 @@ def getFileFromServer(serverFileName, clientFileName):
     print("File download complete: file " + serverFileName +
           " from the server is " + clientFileName + "in the client.")
 
+
 def putFileInServer(serverFileName, clientFileName): # TODO
-    print("hello")
+    # Opens the file if it exists
+    try:
+        clientFile = open("./clientFiles/" + clientFileName, "rb")
+    except FileNotFoundError:
+        print("The indicated file does not exist on the client.")
+        return
+
+    # Sends the request to the server
+    UDPClientSocket.sendto((msgPUT + " " + serverFileName).encode(), serverAddressPort)
+
+    # Receives the confirmation or denial of the request
+    msgFromServer = ((UDPClientSocket.recvfrom(bufferSize)).decode()).split(" ")
+
+    # Denial Handling
+    if msgFromServer[1] != msgACK:
+        if msgFromServer[1] == msgNACK:
+            if msgFromServer[2] == PUT_SERVER_ERROR_FILE:
+                print("A file with the indicated name already exists on the server")
+            else:
+                print("ERROR: Server didn't acknowledge request for an unknown reason.")
+        else:
+            print("ERROR: Unknown answer from the server.")
+        return
+
+    # Send file to the server
+    fileBuffer = clientFile.read(bufferSize)  # The file was opened in binary mode, so no need to encode
+
+    while fileBuffer:
+        clientSocket.send(fileBuffer)
+        fileBuffer = clientFile.read(bufferSize)
+
+    # Closing the socket ??????? and Closing the file
+    """   #nao apagues isto ate termos a certeza
+    clientSocket.shutdown(SHUT_RDWR);
+    clientSocket.close()
+    """
+    clientFile.close()
+
+    print("File upload complete: file " + clientFileName +
+          " from the client is " + serverFileName + "in the server.")
 
 
 # Check if the module is being run as the main program
