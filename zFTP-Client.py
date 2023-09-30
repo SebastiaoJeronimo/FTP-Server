@@ -36,10 +36,6 @@ def main():
 
     # create UDP socket
     UDPClientSocket = socket(AF_INET, SOCK_DGRAM)
-    # create TCP socket
-    clientSocket = socket(AF_INET, SOCK_STREAM)
-    # open TCP connection
-    clientSocket.connect(serverAddressPort)
 
     while True:
         line = input("-> ")
@@ -92,9 +88,9 @@ def openConnection(port):
     # Receives the confirmation or denial of the request
     msgFromServer = (UDPClientSocket.recvfrom(bufferSize)).decode()
 
-    if msgFromServer == msgNACK:  # Denial handling
+    if msgFromServer == msgNACK:  # FOR DEBUG
         print("ERROR: Server didn't acknowledge request for an unknown reason.")
-    elif msgFromServer != msgACK:  # Unknown answer from the server handling
+    elif msgFromServer != msgACK:  # FOR DEBUG
         print("ERROR: Unknown answer from server.")
 
 
@@ -105,12 +101,10 @@ def closeConnection():
     #Receives the confirmation or denial of the request
     msgFromServer = (UDPClientSocket.recvfrom(bufferSize)).decode()
 
-    if msgFromServer == msgNACK: #  Denial handling
+    if msgFromServer == msgNACK:  # FOR DEBUG
         print("ERROR: Server didn't acknowledge request for an unknown reason.")
-    elif msgFromServer != msgACK: #  Unknown answer from the server handling
+    elif msgFromServer != msgACK:  # FOR DEBUG
         print("ERROR: Unknown answer from server.")
-    else:
-        clientSocket.close()
 
 
 def getFileFromServer(serverFileName, clientFileName):
@@ -132,10 +126,16 @@ def getFileFromServer(serverFileName, clientFileName):
             if msgFromServer[2] == GET_SERVER_ERROR_FILE:
                 print("The requested file does not exist on server")
             else:
+                # FOR DEBUG
                 print("ERROR: Server didn't acknowledge request for an unknown reason.")
         else:
+            # FOR DEBUG
             print("ERROR: Unknown answer from the server.")
         return
+
+    # create and open TCP socket and connection
+    clientSocket = socket(AF_INET, SOCK_STREAM)
+    clientSocket.connect(serverAddressPort)
 
     # Receiving from the server and writing to the clientFile
     clientFile = open("./clientFiles/" + clientFileName, "wb")
@@ -145,10 +145,8 @@ def getFileFromServer(serverFileName, clientFileName):
         clientFile.write(fileBuffer)
         fileBuffer = clientSocket.recv(bufferSize)
 
-    # Closing the socket ??????? and Closing the file
-    """   #nao apagues isto ate termos a certeza
-    clientSocket.close()
-    """
+    # Closing the socket and Closing the file
+    clientSocket.close()  # was shutdown from the client
     clientFile.close()
 
     print("File download complete: file " + serverFileName +
@@ -180,6 +178,10 @@ def putFileInServer(serverFileName, clientFileName): # TODO
             print("ERROR: Unknown answer from the server.")
         return
 
+    # create and open TCP socket and connection
+    clientSocket = socket(AF_INET, SOCK_STREAM)
+    clientSocket.connect(serverAddressPort)
+
     # Send file to the server
     fileBuffer = clientFile.read(bufferSize)  # The file was opened in binary mode, so no need to encode
 
@@ -187,11 +189,9 @@ def putFileInServer(serverFileName, clientFileName): # TODO
         clientSocket.send(fileBuffer)
         fileBuffer = clientFile.read(bufferSize)
 
-    # Closing the socket ??????? and Closing the file
-    """   #nao apagues isto ate termos a certeza
-    clientSocket.shutdown(SHUT_RDWR);
+    # Closing the socket and Closing the file
+    clientSocket.shutdown(SHUT_RDWR)
     clientSocket.close()
-    """
     clientFile.close()
 
     print("File upload complete: file " + clientFileName +
