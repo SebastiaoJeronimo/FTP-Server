@@ -1,5 +1,5 @@
 # print("Hello Client World!")
-import os
+import os   # useful to check if file exists in the directory
 from socket import *
 import sys  # needed to access the command-line arguments
 
@@ -14,14 +14,12 @@ msgCLOSE = "close"
 msgOPEN = "open"
 msgGET = "get"
 msgPUT = "put"
-
 msgACK = "ACK"
 msgNACK = "NACK"
-
 PUT_ERROR_FILE_CLIENT = "2"
 GET_ERROR_FILE_SERVER = "3"
-# msgOK = "OK"
-# msgSTART = "START"
+MIN_PORT_NUMBER = 1024
+MAX_PORT_NUMBER = 65535
 
 
 def main():
@@ -45,35 +43,39 @@ def main():
 
     while True:
         line = input("-> ")
-        arrLine = line.split(" ")
+        arrLine = line.split(" ")  # Array with the input
         cmd = arrLine[0]
-        numArg = len(arrLine) - 1  # Don't count the name of the file that has the code to run
+        numArg = len(arrLine) - 1  # Don't count the name of the command
 
         if cmd == msgOPEN:
-            if numArg != 1:
+            if numArg != 1:  # Check number of arguments
                 print("Invalid number of arguments.")
             else:
                 numPort = int(arrLine[1])
-                if numPort < 1024 or numPort > 65535:
+                # Check if port number is valid
+                if numPort < MIN_PORT_NUMBER or numPort > MAX_PORT_NUMBER:
                     print("Invalid Port Number.")
-                else:
-                    openConnection(arrLine[1])
+                    continue
+
+                openConnection(arrLine[1])
 
         elif cmd == msgGET:
-            if numArg != 2:
+            if numArg != 2:  # Check number of arguments
                 print("Invalid number of arguments.")
-            else:
-                serverFile = arrLine[1]
-                clientFile = arrLine[2]
-                getFileFromServer(serverFile, clientFile)
+                continue
+
+            serverFileName = arrLine[1]
+            clientFileName = arrLine[2]
+            getFileFromServer(serverFileName, clientFileName)
 
         elif cmd == msgPUT:
-            if numArg != 2:
+            if numArg != 2:  # Check number of arguments
                 print("Invalid number of arguments.")
-            else:
-                clientFile = arrLine[1]
-                serverFile = arrLine[2]
-                putFileInServer(serverFile, clientFile)
+                continue
+
+            clientFileName = arrLine[1]
+            serverFileName = arrLine[2]
+            putFileInServer(serverFileName, clientFileName)
 
         elif cmd == msgCLOSE:
             closeConnection()
@@ -83,32 +85,46 @@ def main():
             print("No Command: " + cmd)
 
 
-# Tell Server to open TCP Connection
+# Request Server to open TCP Connection
 def openConnection(port):
+    # Sends the request to the server
     UDPClientSocket.sendto((msgOPEN + "" + port).encode(), serverAddressPort)
+    # Receives the confirmation or denial of the request
     msgFromServer = (UDPClientSocket.recvfrom(bufferSize)).decode()
-    if msgFromServer != msgACK:
-        print("ERROR: Server didn't acknowledge request for an unknown reason.")
 
+    if msgFromServer == msgNACK:  # Denial handling
+        print("ERROR: Server didn't acknowledge request for an unknown reason.")
+    elif msgFromServer != msgACK:  # Unknown answer from the server handling
+        print("ERROR: Unknown answer from server.")
 
 # Close the TCP Connection and tell server to do the same
 def closeConnection():
+    #Sends the request to the server
     UDPClientSocket.sendto(msgCLOSE.encode(), serverAddressPort)
+    #Receives the confirmation or denial of the request
     msgFromServer = (UDPClientSocket.recvfrom(bufferSize)).decode()
-    if msgFromServer != msgACK:
+
+    if msgFromServer == msgNACK: #  Denial handling
         print("ERROR: Server didn't acknowledge request for an unknown reason.")
+    elif msgFromServer != msgACK: #  Unknown answer from the server handling
+        print("ERROR: Unknown answer from server.")
     else:
         clientSocket.close()
 
-
 def getFileFromServer(serverFileName, clientFileName):
+
+    # Verifies if the file exists
     if os.path.exists("./clientFiles/" + clientFileName):
         print("A file with the indicated name already exists on the client.")
         return
 
+    # Sends the request to the server
     UDPClientSocket.sendto((msgGET + " " + serverFileName).encode(), serverAddressPort)
+
+    # Receives the confirmation or denial of the request
     msgFromServer = ((UDPClientSocket.recvfrom(bufferSize)).decode()).split(" ")
 
+    # Denial handling
     if msgFromServer[1] == msgNACK:
         if msgFromServer[2] == GET_ERROR_FILE_SERVER:
             print("The requested file does not exist on server")
@@ -117,17 +133,22 @@ def getFileFromServer(serverFileName, clientFileName):
 
         return
 
+    # Receiving from the server and writing to the clientFile
     clientFile = open("./clientFiles/" + clientFileName, "wb")
 
-    fileBuffer = clientSocket.recv(bufferSize)
+    fileBuffer = clientSocket.recv(bufferSize)  # The file was opened in binary mode, so no need to decode
     while fileBuffer:
         clientFile.write(fileBuffer)
         fileBuffer = clientSocket.recv(bufferSize)
 
+    # Closing the socket ??????? and Closing the file
     """   #nao apagues isto ate termos a certeza
-    clientSocket.close() #????
+    clientSocket.close()
     """
     clientFile.close()
+
+    print("File download complete: file " + serverFileName +
+          " from the server is " + clientFileName + "in the client.")
 
 def putFileInServer(serverFileName, clientFileName): # TODO
     print("hello")
