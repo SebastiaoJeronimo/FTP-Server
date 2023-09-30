@@ -1,9 +1,9 @@
 # print("Hello Client World!")
-
+import os
 from socket import *
 import sys  # needed to access the command-line arguments
 
-sockBuffer = 1024  # socket buffer size
+# socket buffer size
 bufferSize = 1024
 
 global serverAddressPort
@@ -17,6 +17,9 @@ msgPUT = "put"
 
 msgACK = "ACK"
 msgNACK = "NACK"
+
+PUT_ERROR_FILE_CLIENT = "2"
+GET_ERROR_FILE_SERVER = "3"
 # msgOK = "OK"
 # msgSTART = "START"
 
@@ -32,7 +35,6 @@ def main():
         serverPort = sys.argv[2]
         serverAddressPort = (serverName, int(serverPort))
         # print("server port: ", serverPort)  # after that check if the port is valid
-    # print("Hello Client World!")
 
     # create UDP socket
     UDPClientSocket = socket(AF_INET, SOCK_DGRAM)
@@ -86,7 +88,7 @@ def openConnection(port):
     UDPClientSocket.sendto((msgOPEN + "" + port).encode(), serverAddressPort)
     msgFromServer = (UDPClientSocket.recvfrom(bufferSize)).decode()
     if msgFromServer != msgACK:
-        print("ERROR: Server didn't acknowledge request, please try again later.")
+        print("ERROR: Server didn't acknowledge request for an unknown reason.")
 
 
 # Close the TCP Connection and tell server to do the same
@@ -94,18 +96,41 @@ def closeConnection():
     UDPClientSocket.sendto(msgCLOSE.encode(), serverAddressPort)
     msgFromServer = (UDPClientSocket.recvfrom(bufferSize)).decode()
     if msgFromServer != msgACK:
-        print("ERROR: Server didn't acknowledge request, please try again later.")
+        print("ERROR: Server didn't acknowledge request for an unknown reason.")
     else:
-
         clientSocket.close()
 
 
-def getFileFromServer(serverFile, clientFile):
-    print("hello")  # TODO
+def getFileFromServer(serverFileName, clientFileName):
+    if os.path.exists("./clientFiles/" + clientFileName):
+        print("A file with the indicated name already exists on the client.")
+        return
 
+    UDPClientSocket.sendto((msgGET + " " + serverFileName).encode(), serverAddressPort)
+    msgFromServer = ((UDPClientSocket.recvfrom(bufferSize)).decode()).split(" ")
 
-def putFileInServer(serverFile, clientFile):
-    print("hello")  # TODO
+    if msgFromServer[1] == msgNACK:
+        if msgFromServer[2] == GET_ERROR_FILE_SERVER:
+            print("The requested file does not exist on server")
+        else:
+            print("ERROR: Server didn't acknowledge request for an unknown reason.")
+
+        return
+
+    clientFile = open("./clientFiles/" + clientFileName, "wb")
+
+    fileBuffer = clientSocket.recv(bufferSize)
+    while fileBuffer:
+        clientFile.write(fileBuffer)
+        fileBuffer = clientSocket.recv(bufferSize)
+
+    """   #nao apagues isto ate termos a certeza
+    clientSocket.close() #????
+    """
+    clientFile.close()
+
+def putFileInServer(serverFileName, clientFileName): # TODO
+    print("hello")
 
 
 # Check if the module is being run as the main program
