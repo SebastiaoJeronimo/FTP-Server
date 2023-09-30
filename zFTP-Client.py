@@ -9,6 +9,7 @@ bufferSize = 1024
 global serverAddressPort
 global clientSocket
 global UDPClientSocket
+global TCPPortNumber
 
 msgCLOSE = "close"
 msgOPEN = "open"
@@ -93,6 +94,10 @@ def openConnection(port):
     elif msgFromServer != msgACK:  # FOR DEBUG
         print("ERROR: " + msgFromServer)
 
+    clientSocket = socket(AF_INET, SOCK_STREAM)
+    clientSocket.bind(("", int(port)))
+    clientSocket.listen(1)
+
 
 # Close the TCP Connection and tell server to do the same
 def closeConnection():
@@ -105,6 +110,8 @@ def closeConnection():
         print("ERROR: Server didn't acknowledge request for an unknown reason.")
     elif msgFromServer != msgACK:  # FOR DEBUG
         print("ERROR: " + msgFromServer)
+
+    clientSocket.close()
 
 
 def getFileFromServer(serverFileName, clientFileName):
@@ -133,20 +140,19 @@ def getFileFromServer(serverFileName, clientFileName):
             print("ERROR: Unknown answer from the server. " + msgFromServer)
         return
 
-    # create and open TCP socket and connection
-    clientSocket = socket(AF_INET, SOCK_STREAM)
-    clientSocket.connect(serverAddressPort)
+    # Accept TCP connection
+    connSocket, addr = clientSocket.accept()
 
     # Receiving from the server and writing to the clientFile
     clientFile = open("./clientFiles/" + clientFileName, "wb")
 
-    fileBuffer = clientSocket.recv(bufferSize)  # The file was opened in binary mode, so no need to decode
+    fileBuffer = connSocket.recv(bufferSize)  # The file was opened in binary mode, so no need to decode
     while fileBuffer:
         clientFile.write(fileBuffer)
-        fileBuffer = clientSocket.recv(bufferSize)
+        fileBuffer = connSocket.recv(bufferSize)
 
     # Closing the socket and Closing the file
-    clientSocket.close()  # was shutdown from the client
+    connSocket.close()  # was shutdown from the client
     clientFile.close()
 
     print("File download complete: file " + serverFileName +
@@ -178,20 +184,19 @@ def putFileInServer(serverFileName, clientFileName):
             print("ERROR: Unknown answer from the server. " + msgFromServer)
         return
 
-    # create and open TCP socket and connection
-    clientSocket = socket(AF_INET, SOCK_STREAM)
-    clientSocket.connect(serverAddressPort)
+    # Accept TCP connection
+    connSocket, addr = clientSocket.accept()
 
     # Send file to the server
     fileBuffer = clientFile.read(bufferSize)  # The file was opened in binary mode, so no need to encode
 
     while fileBuffer:
-        clientSocket.send(fileBuffer)
+        connSocket.send(fileBuffer)
         fileBuffer = clientFile.read(bufferSize)
 
     # Closing the socket and Closing the file
-    clientSocket.shutdown(SHUT_RDWR)
-    clientSocket.close()
+    connSocket.shutdown(SHUT_RDWR)
+    connSocket.close()
     clientFile.close()
 
     print("File upload complete: file " + clientFileName +
