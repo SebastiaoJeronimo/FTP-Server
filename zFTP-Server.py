@@ -75,7 +75,7 @@ def main():
 
                 elif cmd == msgPUT:
                     serverFileName = arrLine[1]
-                    #putFileInServer(serverFileName, clientFileName)
+                    put(serverFileName, clientAddr, portNumber)
 
                 elif cmd == msgCLOSE:
                     break  # To stop the loop
@@ -108,6 +108,26 @@ def get(serverFileName, clientAddr, portNumber):
     TCPSocket.close()
     serverFile.close()
 
+
+def put(serverFileName, clientAddr, portNumber):
+    if not os.path.exists("./serverFiles/" + serverFileName):
+        UDPSocket.sendto((msgNACK + " " + PUT_SERVER_EXISTS_FILE).encode(), clientAddr)
+        return
+
+    serverFile = open("./serverFiles/" + serverFileName, "wb")
+
+    UDPSocket.sendto(msgACK.encode(), clientAddr)
+
+    TCPSocket = socket(AF_INET, SOCK_STREAM)
+    TCPSocket.connect(("", portNumber))
+
+    fileBuffer = TCPSocket.recv(bufferSize)  # The file was opened in binary mode, so no need to decode
+    while fileBuffer:
+        serverFile.write(fileBuffer)
+        fileBuffer = TCPSocket.recv(bufferSize)
+
+    TCPSocket.close()
+    serverFile.close()
 
 
 
