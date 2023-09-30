@@ -91,7 +91,7 @@ def openConnection(port):
     if msgFromServer == msgNACK:  # FOR DEBUG
         print("ERROR: Server didn't acknowledge request for an unknown reason.")
     elif msgFromServer != msgACK:  # FOR DEBUG
-        print("ERROR: Unknown answer from server.")
+        print("ERROR: " + msgFromServer)
 
 
 # Close the TCP Connection and tell server to do the same
@@ -104,7 +104,7 @@ def closeConnection():
     if msgFromServer == msgNACK:  # FOR DEBUG
         print("ERROR: Server didn't acknowledge request for an unknown reason.")
     elif msgFromServer != msgACK:  # FOR DEBUG
-        print("ERROR: Unknown answer from server.")
+        print("ERROR: " + msgFromServer)
 
 
 def getFileFromServer(serverFileName, clientFileName):
@@ -127,10 +127,10 @@ def getFileFromServer(serverFileName, clientFileName):
                 print("The requested file does not exist on server")
             else:
                 # FOR DEBUG
-                print("ERROR: Server didn't acknowledge request for an unknown reason.")
+                print("ERROR: Server didn't acknowledge request for an unknown reason. " + msgFromServer)
         else:
             # FOR DEBUG
-            print("ERROR: Unknown answer from the server.")
+            print("ERROR: Unknown answer from the server. " + msgFromServer)
         return
 
     # create and open TCP socket and connection
@@ -153,7 +153,7 @@ def getFileFromServer(serverFileName, clientFileName):
           " from the server is " + clientFileName + "in the client.")
 
 
-def putFileInServer(serverFileName, clientFileName): # TODO
+def putFileInServer(serverFileName, clientFileName):
     # Opens the file if it exists
     try:
         clientFile = open("./clientFiles/" + clientFileName, "rb")
@@ -173,9 +173,9 @@ def putFileInServer(serverFileName, clientFileName): # TODO
             if msgFromServer[2] == PUT_SERVER_ERROR_FILE:
                 print("A file with the indicated name already exists on the server")
             else:
-                print("ERROR: Server didn't acknowledge request for an unknown reason.")
+                print("ERROR: Server didn't acknowledge request for an unknown reason. " + msgFromServer)
         else:
-            print("ERROR: Unknown answer from the server.")
+            print("ERROR: Unknown answer from the server. " + msgFromServer)
         return
 
     # create and open TCP socket and connection
