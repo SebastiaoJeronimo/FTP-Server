@@ -1,3 +1,4 @@
+import os
 import sys  #needed to access the command-line arguments
 from socket import *
 
@@ -5,7 +6,7 @@ from socket import *
 bufferSize = 1024
 
 global serverAddressPort
-global TCPSocket
+#global TCPSocket
 global UDPSocket
 
 serverName = "127.0.0.1"
@@ -26,7 +27,7 @@ def main():
 
     len_args = len(sys.argv)  # get number of arguments
     if len_args != 2:
-        print ("wrong number of arguments please put only the UDP Port so the server can recieve commands")
+        print ("wrong number of arguments please put only the UDP Port so the server can receive commands")
         return
 
     print("server port" , sys.argv[1])  # after that check if the port is valid
@@ -45,42 +46,54 @@ def main():
     UDPSocket = socket(AF_INET, SOCK_DGRAM)
     UDPSocket.bind(serverAddressPort)
 
+    open = False
 
-    #TODO daqui para baixo foi copiado do client
     while True:
-        line = UDPSocket.recvfrom(bufferSize)
+        line, clientAddr = UDPSocket.recvfrom(bufferSize)
         arrLine = line.decode().split(" ")  # Array with the input
         cmd = arrLine[0]
-        numArg = len(arrLine) - 1  # Don't count the name of the command
 
         if cmd == msgOPEN:
-            openConnection(arrLine[1])
+            portNumber = int(arrLine[1])
 
-        elif cmd == msgGET:
-            if numArg != 2:  # Check number of arguments
-                print("Invalid number of arguments.")
-                continue
+            while True:
+                line, clientAddr2 = UDPSocket.recvfrom(bufferSize)
+                #check if the client that sent the request is the one currently being catered to, if not then ignore it
+                if clientAddr2 != clientAddr:
+                    UDPSocket.sendto((msgNACK + " " + "Server currently occupied").encode(), clientAddr2)
+                    continue
 
-            serverFileName = arrLine[1]
-            clientFileName = arrLine[2]
-            getFileFromServer(serverFileName, clientFileName)
+                arrLine = line.decode().split(" ")  # Array with the input
+                cmd = arrLine[0]
 
-        elif cmd == msgPUT:
-            if numArg != 2:  # Check number of arguments
-                print("Invalid number of arguments.")
-                continue
+                if cmd == msgOPEN:  # DEBUG
+                    print("Can't open a second connection")
 
-            clientFileName = arrLine[1]
-            serverFileName = arrLine[2]
-            putFileInServer(serverFileName, clientFileName)
+                elif cmd == msgGET:
+                    serverFileName = arrLine[1]
+                    if not os.path.exists("./serverFiles/" + serverFileName):
+                        UDPSocket.sendto((msgNACK + " " + GET_SERVER_ERROR_FILE).encode(), clientAddr)
+                        break
 
-        elif cmd == msgCLOSE:
-            closeConnection()
-            break  # To stop the loop
+                    get(serverFileName, portNumber)
 
-        else:
-            print("No Command: " + cmd)
+                elif cmd == msgPUT:
+                    serverFileName = arrLine[1]
+                    #putFileInServer(serverFileName, clientFileName)
 
+                elif cmd == msgCLOSE:
+                    break  # To stop the loop
+
+                else:
+                    print("No Command: " + cmd)
+
+
+def get(serverFileName, portNumber):
+    TCPSocket = socket(AF_INET, SOCK_STREAM)
+    TCPSocket.bind(serverAddressPort)
+    TCPSocket.listen(1)
+
+    connSocket, addr = TCPSocket.accept()
 
 
 if __name__ == "__main__":  #check if the module is being run as the main program
