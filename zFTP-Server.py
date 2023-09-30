@@ -16,8 +16,8 @@ msgGET = "get"
 msgPUT = "put"
 msgACK = "ack"
 msgNACK = "nack"
-PUT_SERVER_ERROR_FILE = "3"
-GET_SERVER_ERROR_FILE = "3"
+PUT_SERVER_EXISTS_FILE = "3"
+GET_SERVER_MISS_FILE = "3"
 MIN_PORT_NUMBER = 1024
 MAX_PORT_NUMBER = 65535
 
@@ -71,11 +71,7 @@ def main():
 
                 elif cmd == msgGET:
                     serverFileName = arrLine[1]
-                    if not os.path.exists("./serverFiles/" + serverFileName):
-                        UDPSocket.sendto((msgNACK + " " + GET_SERVER_ERROR_FILE).encode(), clientAddr)
-                        break
-
-                    get(serverFileName, portNumber)
+                    get(serverFileName, clientAddr, portNumber)
 
                 elif cmd == msgPUT:
                     serverFileName = arrLine[1]
@@ -86,14 +82,33 @@ def main():
 
                 else:
                     print("No Command: " + cmd)
+        else:
+            print("No connection open yet.") #DEBUG
 
 
-def get(serverFileName, portNumber):
+def get(serverFileName, clientAddr, portNumber):
+    try:
+        serverFile = open("./serverFiles/" + serverFileName, "rb")
+    except FileNotFoundError:
+        UDPSocket.sendto((msgNACK + " " + GET_SERVER_MISS_FILE).encode(), clientAddr)
+        return
+
+    UDPSocket.sendto(msgACK.encode(), clientAddr)
+
     TCPSocket = socket(AF_INET, SOCK_STREAM)
-    TCPSocket.bind(serverAddressPort)
-    TCPSocket.listen(1)
+    TCPSocket.connect(("", portNumber))
 
-    connSocket, addr = TCPSocket.accept()
+    fileBuffer = serverFile.read(bufferSize)
+
+    while fileBuffer:
+        TCPSocket.send(fileBuffer)
+        fileBuffer = serverFile.read(bufferSize)
+
+    TCPSocket.shutdown(SHUT_RDWR)
+    TCPSocket.close()
+    serverFile.close()
+
+
 
 
 if __name__ == "__main__":  #check if the module is being run as the main program

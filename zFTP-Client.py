@@ -17,8 +17,8 @@ msgGET = "get"
 msgPUT = "put"
 msgACK = "ack"
 msgNACK = "nack"
-PUT_SERVER_ERROR_FILE = "3"
-GET_SERVER_ERROR_FILE = "3"
+PUT_SERVER_EXISTS_FILE = "3"
+GET_SERVER_MISS_FILE = "3"
 MIN_PORT_NUMBER = 1024
 MAX_PORT_NUMBER = 65535
 
@@ -130,7 +130,7 @@ def getFileFromServer(serverFileName, clientFileName):
     # Denial handling
     if msgFromServer[1] != msgACK:
         if msgFromServer[1] == msgNACK:
-            if msgFromServer[2] == GET_SERVER_ERROR_FILE:
+            if msgFromServer[2] == GET_SERVER_MISS_FILE:
                 print("The requested file does not exist on server")
             else:
                 # FOR DEBUG
@@ -151,8 +151,8 @@ def getFileFromServer(serverFileName, clientFileName):
         clientFile.write(fileBuffer)
         fileBuffer = connSocket.recv(bufferSize)
 
-    # Closing the socket and Closing the file
-    connSocket.close()  # was shutdown from the client
+    # Closing the socket and closing the file
+    connSocket.close()
     clientFile.close()
 
     print("File download complete: file " + serverFileName +
@@ -176,7 +176,7 @@ def putFileInServer(serverFileName, clientFileName):
     # Denial Handling
     if msgFromServer[1] != msgACK:
         if msgFromServer[1] == msgNACK:
-            if msgFromServer[2] == PUT_SERVER_ERROR_FILE:
+            if msgFromServer[2] == PUT_SERVER_EXISTS_FILE:
                 print("A file with the indicated name already exists on the server")
             else:
                 print("ERROR: Server didn't acknowledge request for an unknown reason. " + msgFromServer)
