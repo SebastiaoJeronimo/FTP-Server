@@ -1,12 +1,12 @@
 import os
-import sys  #needed to access the command-line arguments
+import sys  # needed to access the command-line arguments
 from socket import *
 
 # socket buffer size
 bufferSize = 1024
 
-#global serverAddressPort
-#global UDPSocket
+# creating UDP socket
+UDPSocket = socket(AF_INET, SOCK_DGRAM)
 
 serverName = "127.0.0.1"
 msgCLOSE = "close"
@@ -20,48 +20,43 @@ GET_SERVER_MISS_FILE = "3"
 MIN_PORT_NUMBER = 1024
 MAX_PORT_NUMBER = 65535
 
+
 def main():
 
-    print("Hello Server World!")
+    #print("Hello Server World!")
 
-    len_args = len(sys.argv)  # get number of arguments
+    # check number of arguments
+    len_args = len(sys.argv)
     if len_args != 2:
-        print ("wrong number of arguments please put only the UDP Port so the server can receive commands")
+        print("Wrong number of arguments.")
         return
 
-    print("server port" , sys.argv[1])  # after that check if the port is valid
+    #print("Server port", sys.argv[1])  # DEBUG
 
-    """ ja verificamos o server port antes e nao ha mais nenhum argumento 
-    
-    print("Number of arguments: ",len_args-1) #nem para debug é necessario pq ja verificamos antes
-    print("Argument list: ")
-    for i in range(1, len_args):    #list all arguments
-        print(str(sys.argv[i]))
-    """
-
+    # bind UDP socket
     serverAddressPort = (serverName, int(sys.argv[1]))
-
-    # create UDP socket
-    UDPSocket = socket(AF_INET, SOCK_DGRAM)
     UDPSocket.bind(serverAddressPort)
 
+    #run server operations
     while True:
         line, clientAddr = UDPSocket.recvfrom(bufferSize)
         arrLine = line.decode().split(" ")  # Array with the input
         cmd = arrLine[0]
 
+        # Open connection with a Client
         if cmd == msgOPEN:
             portNumber = int(arrLine[1])
             UDPSocket.sendto(msgACK.encode(), clientAddr)
 
             while True:
                 line, clientAddr2 = UDPSocket.recvfrom(bufferSize)
+
                 #check if the client that sent the request is the one currently being catered to, if not then ignore it
                 if clientAddr2 != clientAddr:
                     UDPSocket.sendto((msgNACK + " " + "Server currently occupied").encode(), clientAddr2)
                     continue
 
-                arrLine = line.decode().split(" ")  # Array with the input
+                arrLine = line.decode().split(" ")
                 cmd = arrLine[0]
 
                 if cmd == msgOPEN:
@@ -69,11 +64,11 @@ def main():
 
                 elif cmd == msgGET:
                     serverFileName = arrLine[1]
-                    get(UDPSocket, serverFileName, clientAddr, portNumber)
+                    get(serverFileName, clientAddr, portNumber)
 
                 elif cmd == msgPUT:
                     serverFileName = arrLine[1]
-                    put(UDPSocket, serverFileName, clientAddr, portNumber)
+                    put(serverFileName, clientAddr, portNumber)
 
                 elif cmd == msgCLOSE:
                     UDPSocket.sendto(msgACK.encode(), clientAddr)
@@ -86,7 +81,7 @@ def main():
             UDPSocket.sendto((msgNACK + " Need to open first, cmd = " + cmd).encode(), clientAddr)
 
 
-def get(UDPSocket, serverFileName, clientAddr, portNumber):
+def get(serverFileName, clientAddr, portNumber):
     try:
         serverFile = open("./serverFiles/" + serverFileName, "rb")
     except FileNotFoundError:
@@ -109,7 +104,7 @@ def get(UDPSocket, serverFileName, clientAddr, portNumber):
     serverFile.close()
 
 
-def put(UDPSocket, serverFileName, clientAddr, portNumber):
+def put(serverFileName, clientAddr, portNumber):
     if os.path.exists("./serverFiles/" + serverFileName):
         UDPSocket.sendto((msgNACK + " " + PUT_SERVER_EXISTS_FILE).encode(), clientAddr)
         return
