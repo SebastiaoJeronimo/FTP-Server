@@ -3,37 +3,41 @@ import os   # useful to check if file exists in the directory
 from socket import *
 import sys  # needed to access the command-line arguments
 
-clientSocket = socket(AF_INET, SOCK_STREAM)
-
-# socket buffer size
+#
 bufferSize = 1024
+MIN_PORT_NUMBER = 1024
+MAX_PORT_NUMBER = 65535
 
+# Input keywords
 msgCLOSE = "close"
 msgOPEN = "open"
 msgGET = "get"
 msgPUT = "put"
+
+# Server response keywords
 msgACK = "ack"
 msgNACK = "nack"
+
+# Server response Errors
 PUT_SERVER_EXISTS_FILE = "3"
 GET_SERVER_MISS_FILE = "3"
-MIN_PORT_NUMBER = 1024
-MAX_PORT_NUMBER = 65535
+
+
+# create TCP/UDP sockets
+clientSocket = socket(AF_INET, SOCK_STREAM)
+UDPClientSocket = socket(AF_INET, SOCK_DGRAM)
 
 
 def main():
     len_args = len(sys.argv)  # get number of arguments
     if len_args != 3:
-        (print("Wrong number of arguments please put only the server " +
-               "name and the UDP Port so the server can receive commands"))
+        print("Wrong number of arguments.")
         sys.exit(6969)
-    else:
-        serverName = sys.argv[1]
-        serverPort = sys.argv[2]
-        serverAddressPort = (serverName, int(serverPort))
-        # print("server port: ", serverPort)  # after that check if the port is valid
 
-    # create UDP socket
-    UDPClientSocket = socket(AF_INET, SOCK_DGRAM)
+    serverName = sys.argv[1]
+    serverPort = sys.argv[2]
+    serverAddressPort = (serverName, int(serverPort))
+    #print("server port: ", serverPort)  # after that check if the port is valid # DEBUG
 
     while True:
         line = input("-> ")
@@ -41,8 +45,8 @@ def main():
         cmd = arrLine[0]
         numArg = len(arrLine) - 1  # Don't count the name of the command
 
-        print("arrLine: " )
-        print(arrLine)
+        #print("arrLine: " ) # DEBUG
+        #print(arrLine)
 
         if cmd == msgOPEN:
             if numArg != 1:  # Check number of arguments
@@ -115,7 +119,7 @@ def closeConnection(UDPClientSocket, serverAddressPort):
     elif msgFromServer != msgACK:  # FOR DEBUG
         print("ERROR: " + msgFromServer)
 
-    print("server responce: " + msgFromServer)
+    print("server response: " + msgFromServer)
 
     clientSocket.close()
 
@@ -209,7 +213,7 @@ def putFileInServer(UDPClientSocket, serverAddressPort, clientSocket, serverFile
     clientFile.close()
 
     print("File upload complete: file " + clientFileName +
-          " from the client is " + serverFileName + "in the server.")
+          " from the client is " + serverFileName + " in the server.")
 
 
 # Check if the module is being run as the main program
