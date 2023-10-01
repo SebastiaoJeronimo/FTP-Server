@@ -13,6 +13,7 @@ msgCLOSE = "close"
 msgOPEN = "open"
 msgGET = "get"
 msgPUT = "put"
+msgQUIT = "quit"
 
 # Server response keywords
 msgACK = "ack"
@@ -26,6 +27,9 @@ GET_SERVER_MISS_FILE = "3"
 # create TCP/UDP sockets
 clientSocket = socket(AF_INET, SOCK_STREAM)
 UDPClientSocket = socket(AF_INET, SOCK_DGRAM)
+
+# Global variable
+open = False
 
 
 def main():
@@ -42,23 +46,29 @@ def main():
     while True:
         line = input("-> ")
         arrLine = line.split(" ")  # Array with the input
-        cmd = arrLine[0]
+        cmd = arrLine[0].lower()
         numArg = len(arrLine) - 1  # Don't count the name of the command
 
         #print("arrLine: " ) # DEBUG
         #print(arrLine)
 
+
+
         if cmd == msgOPEN:
+            if open:
+                print("Connection with server already open.")
+                continue
             if numArg != 1:  # Check number of arguments
                 print("Invalid number of arguments.")
-            else:
-                numPort = int(arrLine[1])
-                # Check if port number is valid
-                if numPort < MIN_PORT_NUMBER or numPort > MAX_PORT_NUMBER:
-                    print("Invalid Port Number.")
-                    continue
+                continue
 
-                openConnection(serverAddressPort, arrLine[1])
+            numPort = int(arrLine[1])
+            # Check if port number is valid
+            if numPort < MIN_PORT_NUMBER or numPort > MAX_PORT_NUMBER:
+                print("Invalid Port Number.")
+                continue
+
+            openConnection(serverAddressPort, arrLine[1])
 
         elif cmd == msgGET:
             if numArg != 2:  # Check number of arguments
@@ -79,8 +89,17 @@ def main():
             putFileInServer(serverAddressPort, serverFileName, clientFileName)
 
         elif cmd == msgCLOSE:
-            closeConnection(serverAddressPort)
-            break  # To stop the loop
+            if not open:
+                print("There is no connection to server.")
+            else:
+                closeConnection(serverAddressPort)
+
+        elif cmd == msgQUIT:
+            if open:
+                print("Connection with server still open, close it to be able to quit.")
+            else:
+                clientSocket.close()
+                break  # To stop the loop
 
         else:
             print("Command: " + cmd + " does not exist.")
@@ -102,6 +121,7 @@ def openConnection(serverAddressPort, port):
     # DEBUG
     #print("Received msg from server: " + msgFromServer)
 
+    open = True
     clientSocket.bind(("127.0.0.2", int(port)))
     clientSocket.listen(1) #only accepts one connection at a time
 
@@ -120,7 +140,7 @@ def closeConnection(serverAddressPort):
         print("ERROR: " + msgFromServer)
 
     #print("server response: " + msgFromServer)  # DEBUG
-    clientSocket.close()
+    open = False
 
 
 def getFileFromServer(serverAddressPort, serverFileName, clientFileName):

@@ -60,10 +60,12 @@ def main():
                 arrLine = line.decode().split(" ")
                 cmd = arrLine[0]
 
+                """
                 if cmd == msgOPEN: #check if the open connection is called with the same port
                     UDPSocket.sendto((msgNACK + " This connection is already open").encode(), clientAddr)
+                """
 
-                elif cmd == msgGET:
+                if cmd == msgGET:
                     serverFileName = arrLine[1]
                     get(serverFileName, clientAddr, portNumber)
 
@@ -93,7 +95,7 @@ def get(serverFileName, clientAddr, portNumber):
     UDPSocket.sendto(msgACK.encode(), clientAddr)
 
     TCPSocket = socket(AF_INET, SOCK_STREAM)
-    TCPSocket.connect(("127.0.0.2", portNumber))
+    TCPSocket.connect((clientAddr[0], portNumber))
 
     fileBuffer = serverFile.read(bufferSize)
 
@@ -116,7 +118,7 @@ def put(serverFileName, clientAddr, portNumber):
     UDPSocket.sendto(msgACK.encode(), clientAddr)
 
     TCPSocket = socket(AF_INET, SOCK_STREAM)
-    TCPSocket.connect(("127.0.0.2", portNumber)) # 127.0.0.2 is the name of the client
+    TCPSocket.connect((clientAddr[0], portNumber))
 
     fileBuffer = TCPSocket.recv(bufferSize)  # The file was opened in binary mode, so no need to decode
     while fileBuffer:
