@@ -59,7 +59,7 @@ def main():
                 arrLine = line.decode().split(" ")
                 cmd = arrLine[0]
 
-                if cmd == msgOPEN:
+                if cmd == msgOPEN: #check if the open connection is called with the same port
                     UDPSocket.sendto((msgNACK + " This connection is already open").encode(), clientAddr)
 
                 elif cmd == msgGET:
@@ -99,7 +99,7 @@ def get(serverFileName, clientAddr, portNumber):
         TCPSocket.send(fileBuffer)
         fileBuffer = serverFile.read(bufferSize)
 
-    TCPSocket.shutdown(SHUT_RDWR)
+    TCPSocket.shutdown(SHUT_RDWR) #shutdown of the connection of the socket
     TCPSocket.close()
     serverFile.close()
 
