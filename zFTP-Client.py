@@ -58,7 +58,7 @@ def main():
                     print("Invalid Port Number.")
                     continue
 
-                openConnection(UDPClientSocket, serverAddressPort, arrLine[1])
+                openConnection(serverAddressPort, arrLine[1])
 
         elif cmd == msgGET:
             if numArg != 2:  # Check number of arguments
@@ -67,7 +67,7 @@ def main():
 
             serverFileName = arrLine[1]
             clientFileName = arrLine[2]
-            getFileFromServer(UDPClientSocket, serverAddressPort, clientSocket, serverFileName, clientFileName)
+            getFileFromServer(serverAddressPort, serverFileName, clientFileName)
 
         elif cmd == msgPUT:
             if numArg != 2:  # Check number of arguments
@@ -76,10 +76,10 @@ def main():
 
             clientFileName = arrLine[1]
             serverFileName = arrLine[2]
-            putFileInServer(UDPClientSocket, serverAddressPort, clientSocket, serverFileName, clientFileName)
+            putFileInServer(serverAddressPort, serverFileName, clientFileName)
 
         elif cmd == msgCLOSE:
-            closeConnection(UDPClientSocket, serverAddressPort)
+            closeConnection(serverAddressPort)
             break  # To stop the loop
 
         else:
@@ -87,7 +87,7 @@ def main():
 
 
 # Request Server to open TCP Connection
-def openConnection(UDPClientSocket, serverAddressPort, port):
+def openConnection(serverAddressPort, port):
     # Sends the request to the server
     UDPClientSocket.sendto((msgOPEN + " " + port).encode(), serverAddressPort)
     # Receives the confirmation or denial of the request
@@ -107,7 +107,7 @@ def openConnection(UDPClientSocket, serverAddressPort, port):
 
 
 # Close the TCP Connection and tell server to do the same
-def closeConnection(UDPClientSocket, serverAddressPort):
+def closeConnection(serverAddressPort):
     #Sends the request to the server
     UDPClientSocket.sendto(msgCLOSE.encode(), serverAddressPort)
     #Receives the confirmation or denial of the request
@@ -124,7 +124,7 @@ def closeConnection(UDPClientSocket, serverAddressPort):
     clientSocket.close()
 
 
-def getFileFromServer(UDPClientSocket, serverAddressPort, clientSocket, serverFileName, clientFileName):
+def getFileFromServer(serverAddressPort, serverFileName, clientFileName):
 
     # Verifies if the file exists
     if os.path.exists("./clientFiles/" + clientFileName):
@@ -144,9 +144,9 @@ def getFileFromServer(UDPClientSocket, serverAddressPort, clientSocket, serverFi
             if msgFromServer[1] == GET_SERVER_MISS_FILE:
                 print("The requested file does not exist on server")
             else:
-                print("ERROR: Server didn't acknowledge request for an unknown reason. " + msgFromServer)
+                print("ERROR: Server didn't acknowledge request for an unknown reason. " + msgServer.decode())
         else:
-            print("ERROR: Unknown answer from the server. " + msgFromServer)
+            print("ERROR: Unknown answer from the server. " + msgServer.decode())
         return
 
     # Accept TCP connection
@@ -169,7 +169,7 @@ def getFileFromServer(UDPClientSocket, serverAddressPort, clientSocket, serverFi
           " from the server is " + clientFileName + " in the client.")
 
 
-def putFileInServer(UDPClientSocket, serverAddressPort, clientSocket, serverFileName, clientFileName):
+def putFileInServer(serverAddressPort, serverFileName, clientFileName):
     # Opens the file if it exists
     try:
         clientFile = open("./clientFiles/" + clientFileName, "rb")
@@ -190,7 +190,7 @@ def putFileInServer(UDPClientSocket, serverAddressPort, clientSocket, serverFile
             if msgFromServer[1] == PUT_SERVER_EXISTS_FILE:
                 print("A file with the indicated name already exists on the server")
             else:
-                print("ERROR: Server didn't acknowledge request for an unknown reason. " + msgFromServer) #in case we want to add another exception for protection
+                print("ERROR: Server didn't acknowledge request for an unknown reason. " + msgServer.decode()) #in case we want to add another exception for protection
         else:
             print("ERROR: Unknown answer from the server. ") #just for protection 
             print(msgFromServer)
