@@ -64,8 +64,7 @@ def main():
                 arrLine = line.decode().split(" ")  # Array with the input
                 cmd = arrLine[0]
 
-                if cmd == msgOPEN:  # DEBUG
-                    print("Can't open a second connection")
+                if cmd == msgOPEN:
                     UDPSocket.sendto((msgNACK + " This connection is already open").encode(), clientAddr)
 
                 elif cmd == msgGET:
