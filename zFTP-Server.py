@@ -21,9 +21,10 @@ MIN_PORT_NUMBER = 1024
 MAX_PORT_NUMBER = 65535
 
 
+
 def main():
 
-    #print("Hello Server World!")
+    print("Server is Listening")
 
     # check number of arguments
     len_args = len(sys.argv)
@@ -72,6 +73,7 @@ def main():
 
                 elif cmd == msgCLOSE:
                     UDPSocket.sendto(msgACK.encode(), clientAddr)
+                    print("connection is closed")
                     break  # To stop the loop
 
                 else:

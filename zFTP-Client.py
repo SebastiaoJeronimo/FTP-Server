@@ -103,7 +103,7 @@ def openConnection(serverAddressPort, port):
     #print("Received msg from server: " + msgFromServer)
 
     clientSocket.bind(("127.0.0.2", int(port)))
-    clientSocket.listen(1)
+    clientSocket.listen(1) #only accepts one connection at a time
 
 
 # Close the TCP Connection and tell server to do the same
@@ -120,7 +120,6 @@ def closeConnection(serverAddressPort):
         print("ERROR: " + msgFromServer)
 
     #print("server response: " + msgFromServer)  # DEBUG
-
     clientSocket.close()
 
 
