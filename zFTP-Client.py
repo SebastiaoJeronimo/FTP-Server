@@ -3,7 +3,7 @@ import os   # useful to check if file exists in the directory
 from socket import *
 import sys  # needed to access the command-line arguments
 
-clientSocket = ''
+clientSocket = socket(AF_INET, SOCK_STREAM)
 
 # socket buffer size
 bufferSize = 1024
@@ -41,6 +41,9 @@ def main():
         cmd = arrLine[0]
         numArg = len(arrLine) - 1  # Don't count the name of the command
 
+        print("arrLine: " )
+        print(arrLine)
+
         if cmd == msgOPEN:
             if numArg != 1:  # Check number of arguments
                 print("Invalid number of arguments.")
@@ -72,36 +75,40 @@ def main():
             putFileInServer(UDPClientSocket, serverAddressPort, clientSocket, serverFileName, clientFileName)
 
         elif cmd == msgCLOSE:
-            closeConnection(UDPClientSocket, serverAddressPort, clientSocket)
+            closeConnection(UDPClientSocket, serverAddressPort)
             break  # To stop the loop
 
         else:
-            print("No Command: " + cmd)
+            print("Command: " + cmd + " does not exist.")
 
 
 # Request Server to open TCP Connection
 def openConnection(UDPClientSocket, serverAddressPort, port):
     # Sends the request to the server
-    UDPClientSocket.sendto((msgOPEN + "" + port).encode(), serverAddressPort)
+    UDPClientSocket.sendto((msgOPEN + " " + port).encode(), serverAddressPort)
     # Receives the confirmation or denial of the request
-    msgFromServer = (UDPClientSocket.recvfrom(bufferSize)).decode()
+    msgFromServer, trash = UDPClientSocket.recvfrom(bufferSize)
+    msgFromServer = msgFromServer.decode()
 
     if msgFromServer == msgNACK:  # FOR DEBUG
         print("ERROR: Server didn't acknowledge request for an unknown reason.")
     elif msgFromServer != msgACK:  # FOR DEBUG
         print("ERROR: " + msgFromServer)
 
-    clientSocket = socket(AF_INET, SOCK_STREAM)
+    # DEBUG
+    print("Received msg from server: " + msgFromServer)
+
     clientSocket.bind(("", int(port)))
     clientSocket.listen(1)
 
 
 # Close the TCP Connection and tell server to do the same
-def closeConnection(UDPClientSocket, serverAddressPort, clientSocket):
+def closeConnection(UDPClientSocket, serverAddressPort):
     #Sends the request to the server
     UDPClientSocket.sendto(msgCLOSE.encode(), serverAddressPort)
     #Receives the confirmation or denial of the request
-    msgFromServer = (UDPClientSocket.recvfrom(bufferSize)).decode()
+    msgServer, trash = UDPClientSocket.recvfrom(bufferSize)
+    msgFromServer = msgServer.decode()
 
     if msgFromServer == msgNACK:  # FOR DEBUG
         print("ERROR: Server didn't acknowledge request for an unknown reason.")
@@ -122,12 +129,13 @@ def getFileFromServer(UDPClientSocket, serverAddressPort, clientSocket, serverFi
     UDPClientSocket.sendto((msgGET + " " + serverFileName).encode(), serverAddressPort)
 
     # Receives the confirmation or denial of the request
-    msgFromServer = ((UDPClientSocket.recvfrom(bufferSize)).decode()).split(" ")
+    msgServer, trash = UDPClientSocket.recvfrom(bufferSize)
+    msgFromServer = msgServer.decode().split(" ")
 
     # Denial handling
-    if msgFromServer[1] != msgACK:
-        if msgFromServer[1] == msgNACK:
-            if msgFromServer[2] == GET_SERVER_MISS_FILE:
+    if msgFromServer[0] != msgACK:
+        if msgFromServer[0] == msgNACK:
+            if msgFromServer[1] == GET_SERVER_MISS_FILE:
                 print("The requested file does not exist on server")
             else:
                 # FOR DEBUG
@@ -168,17 +176,19 @@ def putFileInServer(UDPClientSocket, serverAddressPort, clientSocket, serverFile
     UDPClientSocket.sendto((msgPUT + " " + serverFileName).encode(), serverAddressPort)
 
     # Receives the confirmation or denial of the request
-    msgFromServer = ((UDPClientSocket.recvfrom(bufferSize)).decode()).split(" ")
+    msgServer, trash = UDPClientSocket.recvfrom(bufferSize)
+    msgFromServer = msgServer.decode().split(" ")
 
     # Denial Handling
-    if msgFromServer[1] != msgACK:
-        if msgFromServer[1] == msgNACK:
-            if msgFromServer[2] == PUT_SERVER_EXISTS_FILE:
+    if msgFromServer[0] != msgACK:
+        if msgFromServer[0] == msgNACK:
+            if msgFromServer[1] == PUT_SERVER_EXISTS_FILE:
                 print("A file with the indicated name already exists on the server")
             else:
                 print("ERROR: Server didn't acknowledge request for an unknown reason. " + msgFromServer)
         else:
-            print("ERROR: Unknown answer from the server. " + msgFromServer)
+            print("ERROR: Unknown answer from the server. ")
+            print(msgFromServer)
         return
 
     # Accept TCP connection

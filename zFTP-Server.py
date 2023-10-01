@@ -5,9 +5,8 @@ from socket import *
 # socket buffer size
 bufferSize = 1024
 
-global serverAddressPort
-#global TCPSocket
-global UDPSocket
+#global serverAddressPort
+#global UDPSocket
 
 serverName = "127.0.0.1"
 msgCLOSE = "close"
@@ -55,6 +54,7 @@ def main():
 
         if cmd == msgOPEN:
             portNumber = int(arrLine[1])
+            UDPSocket.sendto(msgACK.encode(), clientAddr)
 
             while True:
                 line, clientAddr2 = UDPSocket.recvfrom(bufferSize)
@@ -68,26 +68,28 @@ def main():
 
                 if cmd == msgOPEN:  # DEBUG
                     print("Can't open a second connection")
+                    UDPSocket.sendto((msgNACK + " This connection is already open").encode(), clientAddr)
 
                 elif cmd == msgGET:
                     serverFileName = arrLine[1]
-                    get(serverFileName, clientAddr, portNumber)
+                    get(UDPSocket, serverFileName, clientAddr, portNumber)
 
                 elif cmd == msgPUT:
                     serverFileName = arrLine[1]
-                    put(serverFileName, clientAddr, portNumber)
+                    put(UDPSocket, serverFileName, clientAddr, portNumber)
 
                 elif cmd == msgCLOSE:
+                    UDPSocket.sendto(msgACK.encode(), clientAddr)
                     break  # To stop the loop
 
                 else:
                     print("No Command: " + cmd)
         else:
-            print("No connection open yet.")  # DEBUG
+            print("No connection open yet. " + cmd)  # DEBUG
             UDPSocket.sendto((msgNACK + " Need to open first, cmd = " + cmd).encode(), clientAddr)
 
 
-def get(serverFileName, clientAddr, portNumber):
+def get(UDPSocket, serverFileName, clientAddr, portNumber):
     try:
         serverFile = open("./serverFiles/" + serverFileName, "rb")
     except FileNotFoundError:
@@ -110,8 +112,8 @@ def get(serverFileName, clientAddr, portNumber):
     serverFile.close()
 
 
-def put(serverFileName, clientAddr, portNumber):
-    if not os.path.exists("./serverFiles/" + serverFileName):
+def put(UDPSocket, serverFileName, clientAddr, portNumber):
+    if os.path.exists("./serverFiles/" + serverFileName):
         UDPSocket.sendto((msgNACK + " " + PUT_SERVER_EXISTS_FILE).encode(), clientAddr)
         return
 
