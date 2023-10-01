@@ -98,7 +98,7 @@ def openConnection(UDPClientSocket, serverAddressPort, port):
     # DEBUG
     print("Received msg from server: " + msgFromServer)
 
-    clientSocket.bind(("", int(port)))
+    clientSocket.bind(("127.0.0.2", int(port)))
     clientSocket.listen(1)
 
 
@@ -114,6 +114,8 @@ def closeConnection(UDPClientSocket, serverAddressPort):
         print("ERROR: Server didn't acknowledge request for an unknown reason.")
     elif msgFromServer != msgACK:  # FOR DEBUG
         print("ERROR: " + msgFromServer)
+
+    print("server responce: " + msgFromServer)
 
     clientSocket.close()
 
@@ -161,7 +163,7 @@ def getFileFromServer(UDPClientSocket, serverAddressPort, clientSocket, serverFi
     clientFile.close()
 
     print("File download complete: file " + serverFileName +
-          " from the server is " + clientFileName + "in the client.")
+          " from the server is " + clientFileName + " in the client.")
 
 
 def putFileInServer(UDPClientSocket, serverAddressPort, clientSocket, serverFileName, clientFileName):
