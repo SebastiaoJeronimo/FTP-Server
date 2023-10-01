@@ -94,13 +94,13 @@ def openConnection(UDPClientSocket, serverAddressPort, port):
     msgFromServer, trash = UDPClientSocket.recvfrom(bufferSize)
     msgFromServer = msgFromServer.decode()
 
-    if msgFromServer == msgNACK:  # FOR DEBUG
+    if msgFromServer == msgNACK:
         print("ERROR: Server didn't acknowledge request for an unknown reason.")
-    elif msgFromServer != msgACK:  # FOR DEBUG
+    elif msgFromServer != msgACK:
         print("ERROR: " + msgFromServer)
 
     # DEBUG
-    print("Received msg from server: " + msgFromServer)
+    #print("Received msg from server: " + msgFromServer)
 
     clientSocket.bind(("127.0.0.2", int(port)))
     clientSocket.listen(1)
@@ -114,12 +114,12 @@ def closeConnection(UDPClientSocket, serverAddressPort):
     msgServer, trash = UDPClientSocket.recvfrom(bufferSize)
     msgFromServer = msgServer.decode()
 
-    if msgFromServer == msgNACK:  # FOR DEBUG
+    if msgFromServer == msgNACK:
         print("ERROR: Server didn't acknowledge request for an unknown reason.")
-    elif msgFromServer != msgACK:  # FOR DEBUG
+    elif msgFromServer != msgACK:
         print("ERROR: " + msgFromServer)
 
-    print("server response: " + msgFromServer)
+    #print("server response: " + msgFromServer)  # DEBUG
 
     clientSocket.close()
 
@@ -144,10 +144,8 @@ def getFileFromServer(UDPClientSocket, serverAddressPort, clientSocket, serverFi
             if msgFromServer[1] == GET_SERVER_MISS_FILE:
                 print("The requested file does not exist on server")
             else:
-                # FOR DEBUG
                 print("ERROR: Server didn't acknowledge request for an unknown reason. " + msgFromServer)
         else:
-            # FOR DEBUG
             print("ERROR: Unknown answer from the server. " + msgFromServer)
         return
 
