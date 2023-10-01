@@ -59,10 +59,12 @@ def main():
                 arrLine = line.decode().split(" ")
                 cmd = arrLine[0]
 
+                """
                 if cmd == msgOPEN: #check if the open connection is called with the same port
                     UDPSocket.sendto((msgNACK + " This connection is already open").encode(), clientAddr)
+                """
 
-                elif cmd == msgGET:
+                if cmd == msgGET:
                     serverFileName = arrLine[1]
                     get(serverFileName, clientAddr, portNumber)
 
