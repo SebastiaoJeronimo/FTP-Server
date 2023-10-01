@@ -91,7 +91,7 @@ def get(serverFileName, clientAddr, portNumber):
     UDPSocket.sendto(msgACK.encode(), clientAddr)
 
     TCPSocket = socket(AF_INET, SOCK_STREAM)
-    TCPSocket.connect(("127.0.0.2", portNumber))
+    TCPSocket.connect((clientAddr[0], portNumber))
 
     fileBuffer = serverFile.read(bufferSize)
 
@@ -114,7 +114,7 @@ def put(serverFileName, clientAddr, portNumber):
     UDPSocket.sendto(msgACK.encode(), clientAddr)
 
     TCPSocket = socket(AF_INET, SOCK_STREAM)
-    TCPSocket.connect(("127.0.0.2", portNumber))
+    TCPSocket.connect((clientAddr[0], portNumber))
 
     fileBuffer = TCPSocket.recv(bufferSize)  # The file was opened in binary mode, so no need to decode
     while fileBuffer:
