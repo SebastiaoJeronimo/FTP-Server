@@ -29,7 +29,7 @@ clientSocket = socket(AF_INET, SOCK_STREAM)
 UDPClientSocket = socket(AF_INET, SOCK_DGRAM)
 
 # Global variable
-open = False
+opened = False
 
 
 def main():
@@ -55,7 +55,7 @@ def main():
 
 
         if cmd == msgOPEN:
-            if open:
+            if opened:
                 print("Connection with server already open.")
                 continue
             if numArg != 1:  # Check number of arguments
@@ -89,13 +89,13 @@ def main():
             putFileInServer(serverAddressPort, serverFileName, clientFileName)
 
         elif cmd == msgCLOSE:
-            if not open:
+            if not opened:
                 print("There is no connection to server.")
             else:
                 closeConnection(serverAddressPort)
 
         elif cmd == msgQUIT:
-            if open:
+            if opened:
                 print("Connection with server still open, close it to be able to quit.")
             else:
                 clientSocket.close()
@@ -121,9 +121,9 @@ def openConnection(serverAddressPort, port):
     # DEBUG
     #print("Received msg from server: " + msgFromServer)
 
-    open = True
-    clientSocket.bind(("127.0.0.2", int(port)))
-    clientSocket.listen(1) #only accepts one connection at a time
+    opened = True
+    clientSocket.bind((UDPClientSocket.getsockname()[0], int(port)))
+    clientSocket.listen(1) # only accepts one connection at a time
 
 
 # Close the TCP Connection and tell server to do the same
@@ -140,7 +140,7 @@ def closeConnection(serverAddressPort):
         print("ERROR: " + msgFromServer)
 
     #print("server response: " + msgFromServer)  # DEBUG
-    open = False
+    opened = False
 
 
 def getFileFromServer(serverAddressPort, serverFileName, clientFileName):
