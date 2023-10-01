@@ -83,7 +83,8 @@ def main():
                 else:
                     print("No Command: " + cmd)
         else:
-            print("No connection open yet.") #DEBUG
+            print("No connection open yet.")  # DEBUG
+            UDPSocket.sendto((msgNACK + " Need to open first, cmd = " + cmd).encode(), clientAddr)
 
 
 def get(serverFileName, clientAddr, portNumber):

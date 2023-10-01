@@ -3,13 +3,10 @@ import os   # useful to check if file exists in the directory
 from socket import *
 import sys  # needed to access the command-line arguments
 
+clientSocket = ''
+
 # socket buffer size
 bufferSize = 1024
-
-global serverAddressPort
-global clientSocket
-global UDPClientSocket
-global TCPPortNumber
 
 msgCLOSE = "close"
 msgOPEN = "open"
@@ -54,7 +51,7 @@ def main():
                     print("Invalid Port Number.")
                     continue
 
-                openConnection(arrLine[1])
+                openConnection(UDPClientSocket, serverAddressPort, arrLine[1])
 
         elif cmd == msgGET:
             if numArg != 2:  # Check number of arguments
@@ -63,7 +60,7 @@ def main():
 
             serverFileName = arrLine[1]
             clientFileName = arrLine[2]
-            getFileFromServer(serverFileName, clientFileName)
+            getFileFromServer(UDPClientSocket, serverAddressPort, clientSocket, serverFileName, clientFileName)
 
         elif cmd == msgPUT:
             if numArg != 2:  # Check number of arguments
@@ -72,10 +69,10 @@ def main():
 
             clientFileName = arrLine[1]
             serverFileName = arrLine[2]
-            putFileInServer(serverFileName, clientFileName)
+            putFileInServer(UDPClientSocket, serverAddressPort, clientSocket, serverFileName, clientFileName)
 
         elif cmd == msgCLOSE:
-            closeConnection()
+            closeConnection(UDPClientSocket, serverAddressPort, clientSocket)
             break  # To stop the loop
 
         else:
@@ -83,7 +80,7 @@ def main():
 
 
 # Request Server to open TCP Connection
-def openConnection(port):
+def openConnection(UDPClientSocket, serverAddressPort, port):
     # Sends the request to the server
     UDPClientSocket.sendto((msgOPEN + "" + port).encode(), serverAddressPort)
     # Receives the confirmation or denial of the request
@@ -100,7 +97,7 @@ def openConnection(port):
 
 
 # Close the TCP Connection and tell server to do the same
-def closeConnection():
+def closeConnection(UDPClientSocket, serverAddressPort, clientSocket):
     #Sends the request to the server
     UDPClientSocket.sendto(msgCLOSE.encode(), serverAddressPort)
     #Receives the confirmation or denial of the request
@@ -114,7 +111,7 @@ def closeConnection():
     clientSocket.close()
 
 
-def getFileFromServer(serverFileName, clientFileName):
+def getFileFromServer(UDPClientSocket, serverAddressPort, clientSocket, serverFileName, clientFileName):
 
     # Verifies if the file exists
     if os.path.exists("./clientFiles/" + clientFileName):
@@ -159,7 +156,7 @@ def getFileFromServer(serverFileName, clientFileName):
           " from the server is " + clientFileName + "in the client.")
 
 
-def putFileInServer(serverFileName, clientFileName):
+def putFileInServer(UDPClientSocket, serverAddressPort, clientSocket, serverFileName, clientFileName):
     # Opens the file if it exists
     try:
         clientFile = open("./clientFiles/" + clientFileName, "rb")
