@@ -155,6 +155,7 @@ def getFileFromServer(UDPClientSocket, serverAddressPort, clientSocket, serverFi
     # Receiving from the server and writing to the clientFile
     clientFile = open("./clientFiles/" + clientFileName, "wb")
 
+
     fileBuffer = connSocket.recv(bufferSize)  # The file was opened in binary mode, so no need to decode
     while fileBuffer:
         clientFile.write(fileBuffer)
@@ -189,9 +190,9 @@ def putFileInServer(UDPClientSocket, serverAddressPort, clientSocket, serverFile
             if msgFromServer[1] == PUT_SERVER_EXISTS_FILE:
                 print("A file with the indicated name already exists on the server")
             else:
-                print("ERROR: Server didn't acknowledge request for an unknown reason. " + msgFromServer)
+                print("ERROR: Server didn't acknowledge request for an unknown reason. " + msgFromServer) #in case we want to add another exception for protection
         else:
-            print("ERROR: Unknown answer from the server. ")
+            print("ERROR: Unknown answer from the server. ") #just for protection 
             print(msgFromServer)
         return
 
@@ -200,7 +201,6 @@ def putFileInServer(UDPClientSocket, serverAddressPort, clientSocket, serverFile
 
     # Send file to the server
     fileBuffer = clientFile.read(bufferSize)  # The file was opened in binary mode, so no need to encode
-
     while fileBuffer:
         connSocket.send(fileBuffer)
         fileBuffer = clientFile.read(bufferSize)
