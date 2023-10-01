@@ -99,7 +99,7 @@ def main():
                 print("Connection with server still open, close it to be able to quit.")
             else:
                 clientSocket.close()
-            break  # To stop the loop
+                break  # To stop the loop
 
         else:
             print("Command: " + cmd + " does not exist.")
