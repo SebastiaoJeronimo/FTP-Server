@@ -66,7 +66,7 @@ def main():
 
             numPort = int(arrLine[1])
             # Check if port number is valid
-            if numPort < MIN_PORT_NUMBER or numPort > MAX_PORT_NUMBER:
+            if numPort < MIN_PORT_NUMBER or numPort > MAX_PORT_NUMBER or numPort == serverAddressPort[1]:
                 print("Invalid Port Number.")
                 continue
 
