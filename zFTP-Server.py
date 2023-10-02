@@ -89,7 +89,7 @@ def main():
 
 def get(serverFileName, clientAddr, portNumber):
     try:
-        serverFile = open("./serverFiles/" + serverFileName, "rb")
+        serverFile = open("./" + serverFileName, "rb")
     except FileNotFoundError:
         # Handle error
         UDPSocket.sendto((msgNACK + " " + GET_SERVER_MISS_FILE).encode(), clientAddr)
@@ -119,12 +119,12 @@ def get(serverFileName, clientAddr, portNumber):
 
 
 def put(serverFileName, clientAddr, portNumber):
-    if os.path.exists("./serverFiles/" + serverFileName):  # Handle error
+    if os.path.exists("./" + serverFileName):  # Handle error
         UDPSocket.sendto((msgNACK + " " + PUT_SERVER_EXISTS_FILE).encode(), clientAddr)
         return
 
     # Create and open the file to put in the server
-    serverFile = open("./serverFiles/" + serverFileName, "wb")
+    serverFile = open("./" + serverFileName, "wb")
 
     # Acknowledge client request
     UDPSocket.sendto(msgACK.encode(), clientAddr)

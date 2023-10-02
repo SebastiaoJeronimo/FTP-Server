@@ -162,7 +162,7 @@ def closeConnection(serverAddressPort):
 def getFileFromServer(serverAddressPort, serverFileName, clientFileName):
 
     # Verifies if the file exists
-    if os.path.exists("./clientFiles/" + clientFileName):
+    if os.path.exists("./" + clientFileName):
         print("A file with the indicated name already exists on the client.")
         return
 
@@ -188,7 +188,7 @@ def getFileFromServer(serverAddressPort, serverFileName, clientFileName):
     connSocket, addr = clientSocket.accept()
 
     # Receiving from the server and writing to the clientFile
-    clientFile = open("./clientFiles/" + clientFileName, "wb")
+    clientFile = open("./" + clientFileName, "wb")
 
 
     fileBuffer = connSocket.recv(bufferSize)  # The file was opened in binary mode, so no need to decode
@@ -207,7 +207,7 @@ def getFileFromServer(serverAddressPort, serverFileName, clientFileName):
 def putFileInServer(serverAddressPort, serverFileName, clientFileName):
     # Opens the file if it exists
     try:
-        clientFile = open("./clientFiles/" + clientFileName, "rb")
+        clientFile = open("./" + clientFileName, "rb")
     except FileNotFoundError:
         print("The indicated file does not exist on the client.")
         return
