@@ -122,7 +122,7 @@ def openConnection(serverAddressPort, port):
     #print("Received msg from server: " + msgFromServer)
 
     open = True
-    clientSocket.bind(("127.0.0.2", int(port)))
+    #clientSocket.bind(("127.0.0.2", int(port)))
     clientSocket.listen(1) #only accepts one connection at a time
 
 
