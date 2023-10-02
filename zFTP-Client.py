@@ -23,13 +23,8 @@ msgNACK = "nack"
 PUT_SERVER_EXISTS_FILE = "3"
 GET_SERVER_MISS_FILE = "3"
 
-
 # create TCP/UDP sockets
-clientSocket = socket(AF_INET, SOCK_STREAM)
 UDPClientSocket = socket(AF_INET, SOCK_DGRAM)
-
-# Global variable
-opened = False
 
 
 def main():
@@ -43,6 +38,8 @@ def main():
     serverAddressPort = (serverName, int(serverPort))
     #print("server port: ", serverPort)  # after that check if the port is valid # DEBUG
 
+    opened = False
+
     while True:
         line = input("-> ")
         arrLine = line.split(" ")  # Array with the input
@@ -52,7 +49,7 @@ def main():
         #print("arrLine: " ) # DEBUG
         #print(arrLine)
 
-
+        global clientSocket
 
         if cmd == msgOPEN:
             if opened:
@@ -68,9 +65,13 @@ def main():
                 print("Invalid Port Number.")
                 continue
 
-            openConnection(serverAddressPort, arrLine[1])
+            clientSocket = socket(AF_INET, SOCK_STREAM)
+            opened = openConnection(serverAddressPort, arrLine[1])
 
         elif cmd == msgGET:
+            if not opened:
+                print("To get a file you must first open a connection with the server.")
+                continue
             if numArg != 2:  # Check number of arguments
                 print("Invalid number of arguments.")
                 continue
@@ -80,6 +81,9 @@ def main():
             getFileFromServer(serverAddressPort, serverFileName, clientFileName)
 
         elif cmd == msgPUT:
+            if not opened:
+                print("To put a file you must first open a connection with the server.")
+                continue
             if numArg != 2:  # Check number of arguments
                 print("Invalid number of arguments.")
                 continue
@@ -92,13 +96,12 @@ def main():
             if not opened:
                 print("There is no connection to server.")
             else:
-                closeConnection(serverAddressPort)
+                opened = closeConnection(serverAddressPort)
 
         elif cmd == msgQUIT:
             if opened:
                 print("Connection with server still open, close it to be able to quit.")
             else:
-                clientSocket.close()
                 break  # To stop the loop
 
         else:
@@ -115,15 +118,18 @@ def openConnection(serverAddressPort, port):
 
     if msgFromServer == msgNACK:
         print("ERROR: Server didn't acknowledge request for an unknown reason.")
+        return False
     elif msgFromServer != msgACK:
         print("ERROR: " + msgFromServer)
+        return False
 
     # DEBUG
     #print("Received msg from server: " + msgFromServer)
 
-    opened = True
+    #clientSocket = socket(AF_INET, SOCK_STREAM)
     clientSocket.bind((UDPClientSocket.getsockname()[0], int(port)))
-    clientSocket.listen(1) # only accepts one connection at a time
+    clientSocket.listen(1)  # only accepts one connection at a time
+    return True
 
 
 # Close the TCP Connection and tell server to do the same
@@ -136,11 +142,14 @@ def closeConnection(serverAddressPort):
 
     if msgFromServer == msgNACK:
         print("ERROR: Server didn't acknowledge request for an unknown reason.")
+        return True
     elif msgFromServer != msgACK:
         print("ERROR: " + msgFromServer)
+        return True
 
     #print("server response: " + msgFromServer)  # DEBUG
-    opened = False
+    clientSocket.close()
+    return False
 
 
 def getFileFromServer(serverAddressPort, serverFileName, clientFileName):
@@ -209,10 +218,10 @@ def putFileInServer(serverAddressPort, serverFileName, clientFileName):
             if msgFromServer[1] == PUT_SERVER_EXISTS_FILE:
                 print("A file with the indicated name already exists on the server")
             else:
-                print("ERROR: Server didn't acknowledge request for an unknown reason. " + msgServer.decode()) #in case we want to add another exception for protection
+                print("ERROR: Server didn't acknowledge request for an unknown reason. " + msgServer.decode())
+                # in case we want to add another exception for protection
         else:
-            print("ERROR: Unknown answer from the server. ") #just for protection 
-            print(msgFromServer)
+            print("ERROR: Unknown answer from the server. " + msgServer.decode())  # just for protection
         return
 
     # Accept TCP connection
