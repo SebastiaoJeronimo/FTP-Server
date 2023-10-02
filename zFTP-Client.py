@@ -24,11 +24,12 @@ PUT_SERVER_EXISTS_FILE = "3"
 GET_SERVER_MISS_FILE = "3"
 
 # create TCP/UDP sockets
-UDPClientSocket = socket(AF_INET, SOCK_DGRAM)
+
 
 
 def main():
-    len_args = len(sys.argv)  # get number of arguments
+    len_args = len(sys.argv)
+    # Check number of arguments
     if len_args != 3:
         print("Wrong number of arguments.")
         sys.exit(6969)
@@ -36,9 +37,15 @@ def main():
     serverName = sys.argv[1]
     serverPort = sys.argv[2]
     serverAddressPort = (serverName, int(serverPort))
-    #print("server port: ", serverPort)  # after that check if the port is valid # DEBUG
+
+    # Declaring TCP/UDP sockets as global variables
+    global clientSocket
+    global UDPClientSocket
+    UDPClientSocket = socket(AF_INET, SOCK_DGRAM)
 
     opened = False
+
+    print("Client up and listening to commands.")
 
     while True:
         line = input("-> ")
@@ -48,8 +55,6 @@ def main():
 
         #print("arrLine: " ) # DEBUG
         #print(arrLine)
-
-        global clientSocket
 
         if cmd == msgOPEN:
             if opened:
@@ -129,6 +134,7 @@ def openConnection(serverAddressPort, port):
     #clientSocket = socket(AF_INET, SOCK_STREAM)
     clientSocket.bind((UDPClientSocket.getsockname()[0], int(port)))
     clientSocket.listen(1)  # only accepts one connection at a time
+    print("Connection with server is open.")
     return True
 
 
@@ -149,6 +155,7 @@ def closeConnection(serverAddressPort):
 
     #print("server response: " + msgFromServer)  # DEBUG
     clientSocket.close()
+    print("Connection with server is closed.")
     return False
 
 

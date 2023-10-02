@@ -5,9 +5,6 @@ from socket import *
 # socket buffer size
 bufferSize = 1024
 
-# creating UDP socket
-UDPSocket = socket(AF_INET, SOCK_DGRAM)
-
 serverName = "127.0.0.1"
 msgCLOSE = "close"
 msgOPEN = "open"
@@ -34,6 +31,9 @@ def main():
 
     #print("Server port", sys.argv[1])  # DEBUG
 
+    global UDPSocket
+    UDPSocket = socket(AF_INET, SOCK_DGRAM)
+
     # bind UDP socket
     serverAddressPort = (serverName, int(sys.argv[1]))
     UDPSocket.bind(serverAddressPort)
@@ -48,6 +48,7 @@ def main():
         if cmd == msgOPEN:
             portNumber = int(arrLine[1])
             UDPSocket.sendto(msgACK.encode(), clientAddr)
+            print("Connection opened successfully.")
 
             while True:
                 line, clientAddr2 = UDPSocket.recvfrom(bufferSize)
@@ -55,12 +56,13 @@ def main():
                 #check if the client that sent the request is the one currently being catered to, if not then ignore it
                 if clientAddr2 != clientAddr:
                     UDPSocket.sendto((msgNACK + " " + "Server currently occupied").encode(), clientAddr2)
+                    print("Refused connection from a different client than the one with the connection open.")
                     continue
 
                 arrLine = line.decode().split(" ")
-                cmd = arrLine[0]
+                cmd = arrLine[0].lower()
 
-                """
+                """ #Not needed, already verified on client side
                 if cmd == msgOPEN: #check if the open connection is called with the same port
                     UDPSocket.sendto((msgNACK + " This connection is already open").encode(), clientAddr)
                 """
@@ -75,60 +77,74 @@ def main():
 
                 elif cmd == msgCLOSE:
                     UDPSocket.sendto(msgACK.encode(), clientAddr)
-                    print("connection is closed")
+                    print("Connection closed successfully.")
                     break  # To stop the loop
 
                 else:
                     print("No Command: " + cmd)
         else:
-            print("No connection open yet. " + cmd)  # DEBUG
-            UDPSocket.sendto((msgNACK + " Need to open first, cmd = " + cmd).encode(), clientAddr)
+            #print("No connection open yet. " + cmd)  # DEBUG
+            UDPSocket.sendto((msgNACK + " Need to open connection first, your cmd = " + cmd).encode(), clientAddr)
 
 
 def get(serverFileName, clientAddr, portNumber):
     try:
         serverFile = open("./serverFiles/" + serverFileName, "rb")
     except FileNotFoundError:
+        # Handle error
         UDPSocket.sendto((msgNACK + " " + GET_SERVER_MISS_FILE).encode(), clientAddr)
+        print("File request by client not found. File requested: " + serverFileName)
         return
 
+    # Acknowledge client request
     UDPSocket.sendto(msgACK.encode(), clientAddr)
 
+    # Connect to client by TCP
     TCPSocket = socket(AF_INET, SOCK_STREAM)
     TCPSocket.connect((clientAddr[0], portNumber))
 
+    # Read from file and send it to client
     fileBuffer = serverFile.read(bufferSize)
-
     while fileBuffer:
-        TCPSocket.send(fileBuffer)
+        TCPSocket.send(fileBuffer)  # File was opened in binary mode, so no need to encode()
         fileBuffer = serverFile.read(bufferSize)
 
-    TCPSocket.shutdown(SHUT_RDWR) #shutdown of the connection of the socket
+    # Close the TCP connection and close the file
+    # Recommended by python documentation to shutdown() before close() for faster connection closing
+    TCPSocket.shutdown(SHUT_RDWR)
     TCPSocket.close()
     serverFile.close()
+
+    print("File transfer successful. File: " + serverFileName + " sent to client.")
 
 
 def put(serverFileName, clientAddr, portNumber):
-    if os.path.exists("./serverFiles/" + serverFileName):
+    if os.path.exists("./serverFiles/" + serverFileName):  # Handle error
         UDPSocket.sendto((msgNACK + " " + PUT_SERVER_EXISTS_FILE).encode(), clientAddr)
         return
 
+    # Create and open the file to put in the server
     serverFile = open("./serverFiles/" + serverFileName, "wb")
 
+    # Acknowledge client request
     UDPSocket.sendto(msgACK.encode(), clientAddr)
 
+    # Connect to client by TCP
     TCPSocket = socket(AF_INET, SOCK_STREAM)
     TCPSocket.connect((clientAddr[0], portNumber))
 
-    fileBuffer = TCPSocket.recv(bufferSize)  # The file was opened in binary mode, so no need to decode
+    # Receive the file sent by the client and write it to the newly created file
+    fileBuffer = TCPSocket.recv(bufferSize)
     while fileBuffer:
-        serverFile.write(fileBuffer)
+        serverFile.write(fileBuffer)  # The file was opened in binary mode, so no need to decode
         fileBuffer = TCPSocket.recv(bufferSize)
 
+    # Close the TCP connection and close the file
     TCPSocket.close()
     serverFile.close()
 
+    print("File transfer successful. File: " + serverFileName + " received from client.")
 
 
-if __name__ == "__main__":  #check if the module is being run as the main program
+if __name__ == "__main__":  # Check if the module is being run as the main program
     main()
